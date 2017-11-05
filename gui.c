@@ -2,6 +2,7 @@
 #include "master_pass_app.h"
 #include "encode.h"
 #include "cleanse.h"
+#include "hmac.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,6 +68,12 @@ typedef struct {
 /* declarations */
 static void show_welcome(GUI* gui);
 
+/* data */
+unsigned char const storage_hmac_key[STORAGE_KEY_SIZE] = {
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff,
+};
+
 /* functions */
 /* return dir, create it if doesn't exist */
 static char* create_path(unsigned char const* hash)
@@ -107,6 +114,42 @@ err:
   return NULL;
 }
 
+static void compute_hmac_traverse_cb(StorageNode const* node, StorageNodeArg x)
+{
+  HMAC* hmac = x.ptr;
+
+  /* don't include previous HMAC */
+  if(0 == memcmp(node->key, storage_hmac_key, STORAGE_KEY_SIZE))
+    return;
+
+  HMAC_update(hmac, node->key, STORAGE_KEY_SIZE);
+  HMAC_update(hmac, node->value, STORAGE_VALUE_SIZE);
+}
+
+/* computes a 128-bit value for authentication */
+static void compute_hmac(MasterPassApp* app, void* dest)
+{
+  unsigned char secret_key[HMAC_KEY_SIZE];
+  unsigned char value[HMAC_SIZE];
+  HMAC hmac;
+  StorageNodeArg x;
+
+  /* compute private key for authentication, although it's called
+    crypto_generate_public_hash(), it's unpredictable, furthermore, there's no
+    way a password could have the same value since it's using the private
+    namespace and passwords are required to have both place and login */
+  crypto_generate_public_hash(&app->crypto, secret_key,
+                              RESERVED_PLACE, RESERVED_PLACE_SIZE,
+                              "hmac_key", sizeof "hmac_key" - 1);
+
+  HMAC_init(&hmac, secret_key);
+  x.ptr = &hmac;
+  storage_traverse(&app->storage, compute_hmac_traverse_cb, x);
+  HMAC_final(&hmac, value);
+
+  memcpy(dest, value, 16);
+}
+
 static void error_popup(GUI* gui, char const* msg)
 {
   GtkWidget* popup = gtk_message_dialog_new(WINDOW(gui), GTK_DIALOG_MODAL,
@@ -143,6 +186,11 @@ static void add_box_and_grid(GUI* gui)
 static void destroy_working(GUI* gui)
 {
   MasterPassApp* app = (MasterPassApp*)gui;
+  unsigned char hmac_value[16];
+
+  compute_hmac(app, hmac_value);
+  if(!storage_insert(&app->storage, storage_hmac_key, hmac_value))
+    FATAL;
 
   if(!storage_save(&app->storage))
     FATAL;
@@ -407,11 +455,48 @@ err:
 
 static gboolean open_safe(GtkWidget* widget, gpointer data)
 {
+  MasterPassApp* app = data;
+  unsigned char correct_hmac_value[16];
+  unsigned char found_hmac_value[16];
+  char* msg_buffer;
+
   if(!open_or_create_safe_or_die(data, FALSE))
     error_popup(data, "Safe doesn't exist!");
 
-  else
-    show_working(data);
+  else {
+    compute_hmac(app, correct_hmac_value);
+
+    /* no hmac */
+    if(!storage_find(&app->storage, storage_hmac_key, found_hmac_value)){
+      msg_buffer = malloc(app->storage.name_len
+                          + sizeof "Didn't find an HMAC on db at ");
+      if(!msg_buffer)
+        FATAL;
+
+      sprintf(msg_buffer, "Didn't find an HMAC on db at %s",
+                          app->storage.file_name);
+      error_popup(&app->gui, msg_buffer);
+      free(msg_buffer);
+    }
+
+    /* bad hmac */
+    else
+    if(0 != memcmp(correct_hmac_value, found_hmac_value, 16)){
+      msg_buffer = malloc(app->storage.name_len
+                          + sizeof "Bad HMAC at ");
+      if(!msg_buffer)
+        FATAL;
+
+      sprintf(msg_buffer, "Bad HMAC at %s",
+                          app->storage.file_name);
+      error_popup(&app->gui, msg_buffer);
+      free(msg_buffer);
+    }
+
+    /* good hmac */
+    else
+      show_working(data);
+  }
 
   return TRUE;
 }

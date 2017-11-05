@@ -14,6 +14,8 @@ typedef struct Storage {
   char loaded;
 } Storage;
 
+typedef void(* StorageCb)(StorageNode const* node, StorageNodeArg user_arg);
+
 void storage_init(Storage* storage);
 
 /* return 0 only if it fails to read or allocate memory. it returns 1 even if
@@ -32,6 +34,8 @@ int storage_insert(Storage* storage, unsigned char const* key,
 
 int storage_find(Storage* storage, unsigned char const* key,
                  unsigned char* value);
+
+void storage_traverse(Storage* storage, StorageCb cb, StorageNodeArg user_arg);
 
 /* remove key if it exists */
 void storage_remove(Storage* storage, unsigned char* key);

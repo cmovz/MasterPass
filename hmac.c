@@ -1,5 +1,6 @@
 #include "hmac.h"
 #include "cleanse.h"
+#include <string.h>
 
 /* private */
 static void xor_into(unsigned char* dest, unsigned char const* src,

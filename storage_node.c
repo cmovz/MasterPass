@@ -23,7 +23,7 @@ static void find_node(StorageNodeQuery* q)
   int cmp;
 
   if(NULL != *q->node){
-    cmp = memcmp((*q->node)->key, q->key, STORAGE_KEY_SIZE);
+    cmp = memcmp(q->key, (*q->node)->key, STORAGE_KEY_SIZE);
     if(cmp < 0){
       q->node = &(*q->node)->left;
       q->to_the_left = 1;
@@ -44,6 +44,16 @@ static void insert_node(StorageNode** node, StorageNode* new_node)
 
   make_query(&q, node, new_node->key);
   find_node(&q);
+
+  if(*q.node){
+    new_node->left = (*q.node)->left;
+    new_node->right = (*q.node)->right;
+  }
+  else {
+    new_node->left = NULL;
+    new_node->right = NULL;
+  }
+
   free(*q.node);
   *q.node = new_node;
 }
@@ -147,8 +157,6 @@ int storage_node_insert(StorageNode** root, unsigned char const* key,
   if(!new_node)
     return 0;
 
-  new_node->left = NULL;
-  new_node->right = NULL;
   memcpy(new_node->key, key, STORAGE_KEY_SIZE);
   memcpy(new_node->value, value, STORAGE_VALUE_SIZE);
 

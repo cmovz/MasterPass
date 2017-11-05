@@ -45,7 +45,8 @@ void crypto_set_password(Crypto* crypto, unsigned char const* password,
 
 void crypto_reset_password(Crypto* crypto);
 
-/* maybe refactor below to use WorkingInput */
+/* maybe refactor below to use WorkingInput,
+  TODO: rename */
 void crypto_generate_public_hash(Crypto* crypto,
                                  unsigned char* dest_32_bytes,
                                  unsigned char const* place, size_t place_size,

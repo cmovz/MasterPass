@@ -213,6 +213,12 @@ int storage_find(Storage* s, unsigned char const* key,
   return 1;
 }
 
+void storage_traverse(Storage* s, StorageCb cb, StorageNodeArg user_arg)
+{
+  storage_node_traverse(s->root,
+                        (void(*)(StorageNode*, StorageNodeArg))cb, user_arg);
+}
+
 void storage_remove(Storage* s, unsigned char* key)
 {
   s->changed |= storage_node_remove(&s->root, key);
