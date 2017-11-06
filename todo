@@ -1,2 +1,3 @@
-Use alphabets that are more likely to be accepted by most sites? (maybe)
+Use alphabets that are more likely to be accepted by most sites
+Detect and use sha extensions to increase performance
 Rename HMAC_* to hmac_* to be consistent with sha256_* convention
