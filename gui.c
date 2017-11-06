@@ -477,6 +477,11 @@ static gboolean open_safe(GtkWidget* widget, gpointer data)
                           app->storage.file_name);
       error_popup(&app->gui, msg_buffer);
       free(msg_buffer);
+
+      /* reset state */
+      crypto_reset_password(&app->crypto);
+      storage_destroy(&app->storage);
+      storage_init(&app->storage);
     }
 
     /* bad hmac */
@@ -491,6 +496,11 @@ static gboolean open_safe(GtkWidget* widget, gpointer data)
                           app->storage.file_name);
       error_popup(&app->gui, msg_buffer);
       free(msg_buffer);
+
+      /* reset state */
+      crypto_reset_password(&app->crypto);
+      storage_destroy(&app->storage);
+      storage_init(&app->storage);
     }
 
     /* good hmac */
