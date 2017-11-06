@@ -15,7 +15,10 @@ typedef struct KeyGenerator {
   unsigned char version[PASSWORD_VERSION_SIZE]; /* little-endian counter */
 
   /* this separates passwords from unprotected data such as keys and values that
-    hold the current password version */
+    hold the current password version since password key will come from:
+      sha256(key, place=site, login=username, version=n, type=private);
+    and storage key from:
+      sha256(key, place=site, login=username, version=n, type=public)*/
   unsigned char type[TYPE_SIZE];
 } KeyGenerator;
 
