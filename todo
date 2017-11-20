@@ -1,3 +1,4 @@
 Use alphabets that are more likely to be accepted by most sites
+Use multiple hash functions to increase security by reducing collisions
 Detect and use sha extensions to increase performance
 Rename HMAC_* to hmac_* to be consistent with sha256_* convention
