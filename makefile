@@ -3,8 +3,13 @@ LFLAGS = `pkg-config --libs gtk+-3.0`
 CC = gcc
 NAME = master_pass
 
-debug:
-	$(CC) -o $(NAME) $(CFLAGS) -g *.c $(LFLAGS)
+debug: asm
+	$(CC) -o $(NAME) $(CFLAGS) -g *.c asm.o $(LFLAGS)
+	rm asm.o
 
-release:
-	$(CC) -o $(NAME) $(CFLAGS) -O2 -flto -DNDEBUG *.c $(LFLAGS)
+release: asm
+	$(CC) -o $(NAME) $(CFLAGS) -O2 -flto -DNDEBUG *.c asm.o $(LFLAGS)
+	rm asm.o
+
+asm: asm.asm
+	nasm -felf64 -o asm.o asm.asm
