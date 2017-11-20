@@ -24,10 +24,11 @@ static unsigned char const private_type[TYPE_SIZE] = {
   0x5e,
 };
 
-/* transition state */
-static void random_oracle_f(RandomOracle* ro)
+/* password generator with support for any alphabets and lengths */
+static void generate_password(RandomOracle* ro, char* dest, size_t pass_size,
+                              char const* alphabet, size_t alphabet_size)
 {
-  hash(ro->state, (void const*)ro, sizeof *ro);
+  /* TODO */
 }
 
 /* Public */
@@ -40,21 +41,24 @@ void crypto_init(Crypto* crypto)
 void crypto_destroy(Crypto* crypto)
 {
   /*crypto->has_key = 0;*/
+  random_oracle_destroy(&crypto->oracle);
   cleanse(crypto, sizeof *crypto);
 }
 
 void crypto_set_password(Crypto* crypto, unsigned char const* password,
                          size_t size)
 {
+  unsigned char key[CRYPTO_KEY_SIZE];
   int i;
 
-  memset(crypto->oracle.state, 0x00, CRYPTO_KEY_SIZE);
-  hash(crypto->oracle.key, password, size);
+  hash(key, password, size);
+  random_oracle_init(&crypto->oracle, key);
 
   for(i = 0; i < KEY_DERIVATION_ITERATIONS; ++i)
-    random_oracle_f(&crypto->oracle);
+    random_oracle_transition_state(&crypto->oracle);
 
-  memcpy(crypto->generator.key, crypto->oracle.state, CRYPTO_KEY_SIZE);
+  random_oracle_get_bytes(&crypto->oracle, crypto->generator.key,
+                          CRYPTO_KEY_SIZE);
   crypto->has_key = 1;
 }
 
@@ -91,6 +95,8 @@ void crypto_generate_password(Crypto* crypto,
                               unsigned char const* login, size_t login_size,
                               unsigned char const* version)
 {
+  unsigned char key[32];
+
   if(!crypto->has_key)
     abort();
 
@@ -99,12 +105,10 @@ void crypto_generate_password(Crypto* crypto,
   memcpy(crypto->generator.version, version, PASSWORD_VERSION_SIZE);
   memcpy(crypto->generator.type, private_type, TYPE_SIZE);
 
-  memset(crypto->oracle.state, 0x00, CRYPTO_KEY_SIZE);
-  hash(crypto->oracle.key, (void const*)&crypto->generator,
-       sizeof crypto->generator);
+  hash(key, (void const*)&crypto->generator, sizeof crypto->generator);
+  random_oracle_init(&crypto->oracle, key);
+  random_oracle_get_bytes(&crypto->oracle, key, CRYPTO_KEY_SIZE);
 
-  random_oracle_f(&crypto->oracle);
-
-  bin_to_base64(base64_dest, crypto->oracle.state, CRYPTO_KEY_SIZE);
-  bin_to_hex(hex_dest, crypto->oracle.state, CRYPTO_KEY_SIZE);
+  bin_to_base64(base64_dest, key, CRYPTO_KEY_SIZE);
+  bin_to_hex(hex_dest, key, CRYPTO_KEY_SIZE);
 }

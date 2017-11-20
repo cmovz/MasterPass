@@ -5,6 +5,7 @@
 #define PASSWORD_VERSION_SIZE 16
 #define TYPE_SIZE 16
 
+#include "random_oracle.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -21,16 +22,6 @@ typedef struct KeyGenerator {
       sha256(key, place=site, login=username, version=n, type=public)*/
   unsigned char type[TYPE_SIZE];
 } KeyGenerator;
-
-/* key produced by the generator will be fed to the RandomOracle to produce an
-  arbitrary-length random stream from which the password will be chosen. It's
-  not required now but allows to change password generation policy easily later,
-  it's trivial to allow arbitrary-length passwords and to discard bytes which
-  fall out of range if custom alphabets are used. */
-typedef struct RandomOracle {
-  unsigned char state[CRYPTO_KEY_SIZE];
-  unsigned char key[CRYPTO_KEY_SIZE];
-} RandomOracle;
 
 typedef struct Crypto {
   KeyGenerator generator;
