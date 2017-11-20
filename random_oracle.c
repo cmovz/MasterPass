@@ -25,6 +25,7 @@ void random_oracle_init(RandomOracle* ro, unsigned char const* key)
 void random_oracle_transition_state(RandomOracle* ro)
 {
   random_oracle_f(ro);
+  ro->pos = 0;
 }
 
 void random_oracle_get_bytes(RandomOracle* ro, void* dest, size_t n)
