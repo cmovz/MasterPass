@@ -1,10 +1,10 @@
+#include "asm.h"
 #include "master_pass_app.h"
 #include "cleanse.h"
 #include <sys/mman.h>
 #include <stdlib.h>
 
 #define MLOCK_SIZE (0x1000 * 16)
-#define STACK_FRAME_SIZE (sizeof(MasterPassApp) + 16)
 
 int main(int argc, char* argv[])
 {
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
   master_pass_app_destroy(&app);
 
   /* clean up stack */
-  cleanse(mlock_addr, MLOCK_SIZE - STACK_FRAME_SIZE);
+  CleanseStack(16);
 
   munlock(mlock_addr, MLOCK_SIZE);
   return status;
