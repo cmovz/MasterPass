@@ -3,5 +3,4 @@ A deterministic, stateful, password manager. Read more at https://artfulcode.wor
 
 **Notes:**
 
-- It was probably a bad idea to use `__uint128_t` I'll change it to something more easily ported.
-- I'll change the alphabets for the derived passwords
+- Many changes to come
