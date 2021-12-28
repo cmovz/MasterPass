@@ -6,7 +6,7 @@
 /* transition state */
 static void random_oracle_f(RandomOracle* ro)
 {
-  hash(ro->state, (void const*)ro, sizeof *ro);
+  hash(ro->state, (void const*)ro, RANDOM_ORACLE_KEY_SIZE * 2);
 }
 
 void random_oracle_destroy(RandomOracle* ro)
