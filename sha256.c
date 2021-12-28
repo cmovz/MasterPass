@@ -58,7 +58,7 @@ static void sha256_compress(SHA256_INTERNAL_CTX* c, void const* block)
   unsigned char const* src = block;
   int i;
 
-  for(i = 0; i < 64; ++i){
+  for(i = 0; i < 16; ++i){
     le_to_be(c->w + i, src, sizeof c->w[0]);
     src += sizeof c->w[0];
   }
