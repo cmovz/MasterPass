@@ -9,7 +9,7 @@
 int main(int argc, char* argv[])
 {
   MasterPassApp app;
-  char* mlock_addr = (char*)&app - MLOCK_SIZE;
+  char* mlock_addr = (char*)&app + sizeof app - MLOCK_SIZE;
   int status;
 
   /* lock the stack here */
