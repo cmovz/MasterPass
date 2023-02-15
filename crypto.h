@@ -29,28 +29,28 @@ typedef struct Crypto {
   int has_key;
 } Crypto;
 
-void crypto_init(Crypto* crypto);
+void crypto_init(Crypto *crypto);
 
 /* clean up */
-void crypto_destroy(Crypto* crypto);
+void crypto_destroy(Crypto *crypto);
 
-void crypto_set_password(Crypto* crypto, unsigned char const* password,
+void crypto_set_password(Crypto *crypto, unsigned char const *password,
                          size_t size);
 
-void crypto_reset_password(Crypto* crypto);
+void crypto_reset_password(Crypto *crypto);
 
 /* maybe refactor below to use WorkingInput,
   TODO: rename */
-void crypto_generate_public_hash(Crypto* crypto,
-                                 unsigned char* dest_32_bytes,
-                                 unsigned char const* place, size_t place_size,
-                                 unsigned char const* login, size_t login_size);
+void crypto_generate_public_hash(Crypto *crypto,
+                                 unsigned char *dest_32_bytes,
+                                 unsigned char const *place, size_t place_size,
+                                 unsigned char const *login, size_t login_size);
 
-void crypto_generate_password(Crypto* crypto,
-                              char* base64_dest_45_bytes,
-                              char* hex_dest_65_bytes,
-                              unsigned char const* place, size_t place_size,
-                              unsigned char const* login, size_t login_size,
-                              unsigned char const* version_16bytes);
+void crypto_generate_password(Crypto *crypto,
+                              char *base64_dest_45_bytes,
+                              char *hex_dest_65_bytes,
+                              unsigned char const *place, size_t place_size,
+                              unsigned char const *login, size_t login_size,
+                              unsigned char const *version_16bytes);
 
 #endif

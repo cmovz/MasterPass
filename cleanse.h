@@ -3,6 +3,6 @@
 
 #include <stddef.h>
 
-void cleanse(volatile void* mem, size_t size);
+void cleanse(volatile void *mem, size_t size);
 
 #endif

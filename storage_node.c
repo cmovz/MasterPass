@@ -4,13 +4,13 @@
 
 /* This is used to find nodes in the tree and receive the results */
 typedef struct NodeQuery {
-  StorageNode** node;
-  unsigned char const* key;
+  StorageNode **node;
+  unsigned char const *key;
   int to_the_left;
 } StorageNodeQuery;
 
-static void make_query(StorageNodeQuery* q, StorageNode** root,
-                       unsigned char const* key)
+static void make_query(StorageNodeQuery *q, StorageNode **root,
+                       unsigned char const *key)
 {
   q->node = root;
   q->key = key;
@@ -18,19 +18,17 @@ static void make_query(StorageNodeQuery* q, StorageNode** root,
 }
 
 /* returns the element or where the element should be */
-static void find_node(StorageNodeQuery* q)
+static void find_node(StorageNodeQuery *q)
 {
   int cmp;
 
-  if(NULL != *q->node){
+  if (NULL != *q->node) {
     cmp = memcmp(q->key, (*q->node)->key, STORAGE_KEY_SIZE);
-    if(cmp < 0){
+    if (cmp < 0) {
       q->node = &(*q->node)->left;
       q->to_the_left = 1;
       find_node(q);
-    }
-    else
-    if(cmp > 0){
+    } else if (cmp > 0) {
       q->node = &(*q->node)->right;
       q->to_the_left = 0;
       find_node(q);
@@ -38,18 +36,17 @@ static void find_node(StorageNodeQuery* q)
   }
 }
 
-static void insert_node(StorageNode** node, StorageNode* new_node)
+static void insert_node(StorageNode **node, StorageNode *new_node)
 {
   StorageNodeQuery q;
 
   make_query(&q, node, new_node->key);
   find_node(&q);
 
-  if(*q.node){
+  if (*q.node) {
     new_node->left = (*q.node)->left;
     new_node->right = (*q.node)->right;
-  }
-  else {
+  } else {
     new_node->left = NULL;
     new_node->right = NULL;
   }
@@ -58,13 +55,13 @@ static void insert_node(StorageNode** node, StorageNode* new_node)
   *q.node = new_node;
 }
 
-static void traverse_nodes(StorageNode* node,
-                           void(*cb)(StorageNode*, StorageNodeArg),
+static void traverse_nodes(StorageNode *node,
+                           void(*cb)(StorageNode *, StorageNodeArg),
                            StorageNodeArg user_data)
 {
-  StorageNode* right;
+  StorageNode *right;
 
-  if(!node)
+  if (!node)
     return;
 
   traverse_nodes(node->left, cb, user_data);
@@ -76,71 +73,69 @@ static void traverse_nodes(StorageNode* node,
   traverse_nodes(right, cb, user_data);
 }
 
-static void free_node(StorageNode* node, StorageNodeArg user_data)
+static void free_node(StorageNode *node, StorageNodeArg user_data)
 {
   free(node);
 }
 
-static void destroy_nodes(StorageNode* root)
+static void destroy_nodes(StorageNode *root)
 {
   StorageNodeArg ignore;
   traverse_nodes(root, free_node, ignore);
 }
 
-static StorageNode** get_rightmost_child(StorageNode* node)
+static StorageNode **get_rightmost_child(StorageNode *node)
 {
-  if(NULL == node->right)
+  if (NULL == node->right)
     return &node->right;
 
   return get_rightmost_child(node->right);
 }
 
-static StorageNode** get_leftmost_child(StorageNode* node)
+static StorageNode **get_leftmost_child(StorageNode *node)
 {
-  if(NULL == node->left)
+  if (NULL == node->left)
     return &node->left;
 
   return get_leftmost_child(node->left);
 }
 
-static int remove_node(StorageNode** root, unsigned char const* key)
+static int remove_node(StorageNode **root, unsigned char const *key)
 {
   StorageNodeQuery q;
-  StorageNode* removed_node;
+  StorageNode *removed_node;
 
   make_query(&q, root, key);
   find_node(&q);
 
   /* not found */
-  if(NULL == *q.node)
+  if (NULL == *q.node)
     return 0;
 
   removed_node = *q.node;
 
-  if(removed_node->left){
+  if (removed_node->left) {
     /* left and right children */
-    if(removed_node->right){
-      if(q.to_the_left){
+    if (removed_node->right) {
+      if (q.to_the_left) {
         *q.node = removed_node->right;
         *get_leftmost_child(removed_node->right) = removed_node->left;
-      }
-      else {
+      } else {
         *q.node = removed_node->left;
         *get_rightmost_child(removed_node->left) = removed_node->right;
       }
     }
 
-    /* only left child */
+      /* only left child */
     else
       *q.node = removed_node->left;
   }
 
-  /* only right child */
-  else
-  if(removed_node->right)
+    /* only right child */
+  else if (removed_node->right)
     *q.node = removed_node->right;
 
-  /* no children */
+    /* no children */
   else
     *q.node = NULL;
 
@@ -150,11 +145,11 @@ static int remove_node(StorageNode** root, unsigned char const* key)
 
 
 /* Public */
-int storage_node_insert(StorageNode** root, unsigned char const* key,
-                        unsigned char const* value)
+int storage_node_insert(StorageNode **root, unsigned char const *key,
+                        unsigned char const *value)
 {
-  StorageNode* new_node = malloc(sizeof(StorageNode));
-  if(!new_node)
+  StorageNode *new_node = malloc(sizeof(StorageNode));
+  if (!new_node)
     return 0;
 
   memcpy(new_node->key, key, STORAGE_KEY_SIZE);
@@ -164,7 +159,7 @@ int storage_node_insert(StorageNode** root, unsigned char const* key,
   return 1;
 }
 
-StorageNode** storage_node_find(StorageNode** root, unsigned char const* key)
+StorageNode **storage_node_find(StorageNode **root, unsigned char const *key)
 {
   StorageNodeQuery q;
 
@@ -174,19 +169,19 @@ StorageNode** storage_node_find(StorageNode** root, unsigned char const* key)
   return q.node;
 }
 
-int storage_node_remove(StorageNode** root, unsigned char const* key)
+int storage_node_remove(StorageNode **root, unsigned char const *key)
 {
   return remove_node(root, key);
 }
 
-void storage_node_traverse(StorageNode* root,
-                           void(* cb)(StorageNode*, StorageNodeArg),
+void storage_node_traverse(StorageNode *root,
+                           void(*cb)(StorageNode *, StorageNodeArg),
                            StorageNodeArg user_data)
 {
   traverse_nodes(root, cb, user_data);
 }
 
-void storage_node_destroy_tree(StorageNode** root)
+void storage_node_destroy_tree(StorageNode **root)
 {
   destroy_nodes(*root);
   *root = NULL;

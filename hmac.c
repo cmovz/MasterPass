@@ -3,15 +3,15 @@
 #include <string.h>
 
 /* private */
-static void xor_into(unsigned char* dest, unsigned char const* src,
+static void xor_into(unsigned char *dest, unsigned char const *src,
                      unsigned char x, size_t n)
 {
-  while(n--)
+  while (n--)
     *dest++ = *src++ ^ x;
 }
 
 /* public */
-void hmac_init(HMAC* hmac, unsigned char const* key)
+void hmac_init(HMAC *hmac, unsigned char const *key)
 {
   unsigned char ipad[HMAC_HASH_BLOCK_SIZE];
 
@@ -27,13 +27,13 @@ void hmac_init(HMAC* hmac, unsigned char const* key)
   sha256_update(&hmac->ctx, ipad, sizeof ipad);
 }
 
-void hmac_update(HMAC* hmac, void const* data, size_t data_size)
+void hmac_update(HMAC *hmac, void const *data, size_t data_size)
 {
   sha256_update(&hmac->ctx, data, data_size);
 }
 
 /* return HMAC and clean up the structure */
-void hmac_final(HMAC* hmac, unsigned char* out)
+void hmac_final(HMAC *hmac, unsigned char *out)
 {
   unsigned char final_data[sizeof hmac->opad + HMAC_HASH_SIZE];
 

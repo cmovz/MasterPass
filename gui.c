@@ -39,7 +39,7 @@
 #define CLOSE_BUTTON(g) g->data[11]
 
 /* macros to make things less painful */
-#define ATTACH(gui,widget,x,y,w,h) \
+#define ATTACH(gui, widget, x, y, w, h) \
   gtk_grid_attach(GTK_GRID(GRID(gui)), widget, x, y, w, h)
 
 #define FATAL {\
@@ -52,21 +52,21 @@ typedef enum {
 } EPassOp;
 
 typedef struct {
-  char const* place;
+  char const *place;
   size_t place_size;
-  char const* login;
+  char const *login;
   size_t login_size;
 } WorkingInput;
 
 typedef struct {
-  char const* pass;
+  char const *pass;
   size_t pass_size;
-  char const* conf;
+  char const *conf;
   size_t conf_size;
 } WelcomeInput;
 
 /* declarations */
-static void show_welcome(GUI* gui);
+static void show_welcome(GUI *gui);
 
 /* data */
 unsigned char const storage_hmac_key[STORAGE_KEY_SIZE] = {
@@ -76,22 +76,22 @@ unsigned char const storage_hmac_key[STORAGE_KEY_SIZE] = {
 
 /* functions */
 /* return dir, create it if doesn't exist */
-static char* create_path(unsigned char const* hash)
+static char *create_path(unsigned char const *hash)
 {
-  char* path;
-  char* slash;
-  char const* home_dir;
+  char *path;
+  char *slash;
+  char const *home_dir;
   size_t home_dir_len;
   struct stat st;
 
   home_dir = getenv("HOME");
-  if(!home_dir)
+  if (!home_dir)
     goto err;
 
   home_dir_len = strlen(home_dir);
 
   path = malloc(home_dir_len + 1 + DB_PATH_SIZE);
-  if(!path)
+  if (!path)
     goto err;
 
   memcpy(path, home_dir, home_dir_len);
@@ -101,25 +101,25 @@ static char* create_path(unsigned char const* hash)
   slash = path + home_dir_len + 1 + sizeof DIR_BASE - 1;
   *slash = '\0';
 
-  if(-1 == stat(path, &st) && -1 == mkdir(path, 0700))
+  if (-1 == stat(path, &st) && -1 == mkdir(path, 0700))
     goto err1;
 
   *slash = '/';
   bin_to_hex(slash + 1, hash, CRYPTO_KEY_SIZE);
   return path;
 
-err1:
+  err1:
   free(path);
-err:
+  err:
   return NULL;
 }
 
-static void compute_hmac_traverse_cb(StorageNode const* node, StorageNodeArg x)
+static void compute_hmac_traverse_cb(StorageNode const *node, StorageNodeArg x)
 {
-  HMAC* hmac = x.ptr;
+  HMAC *hmac = x.ptr;
 
   /* don't include previous HMAC */
-  if(0 == memcmp(node->key, storage_hmac_key, STORAGE_KEY_SIZE))
+  if (0 == memcmp(node->key, storage_hmac_key, STORAGE_KEY_SIZE))
     return;
 
   hmac_update(hmac, node->key, STORAGE_KEY_SIZE);
@@ -127,7 +127,7 @@ static void compute_hmac_traverse_cb(StorageNode const* node, StorageNodeArg x)
 }
 
 /* computes a 128-bit value for authentication */
-static void compute_hmac(MasterPassApp* app, void* dest)
+static void compute_hmac(MasterPassApp *app, void *dest)
 {
   unsigned char secret_key[HMAC_KEY_SIZE];
   unsigned char value[HMAC_SIZE];
@@ -150,22 +150,22 @@ static void compute_hmac(MasterPassApp* app, void* dest)
   memcpy(dest, value, 16);
 }
 
-static void error_popup(GUI* gui, char const* msg)
+static void error_popup(GUI *gui, char const *msg)
 {
-  GtkWidget* popup = gtk_message_dialog_new(WINDOW(gui), GTK_DIALOG_MODAL,
+  GtkWidget *popup = gtk_message_dialog_new(WINDOW(gui), GTK_DIALOG_MODAL,
                                             GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
                                             "Error: %s", msg);
   gtk_dialog_run(GTK_DIALOG(popup));
   gtk_widget_destroy(popup);
 }
 
-static void set_clipboard(void const* data, size_t size)
+static void set_clipboard(void const *data, size_t size)
 {
   gtk_clipboard_set_text(gtk_clipboard_get(GDK_SELECTION_CLIPBOARD),
                          data, size);
 }
 
-static void add_box_and_grid(GUI* gui)
+static void add_box_and_grid(GUI *gui)
 {
   BOX(gui) = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
   gtk_widget_set_margin_top(BOX(gui), 8);
@@ -183,17 +183,15 @@ static void add_box_and_grid(GUI* gui)
 }
 
 /* working screen generates passwords and allows to change them */
-static void destroy_working(GUI* gui)
+static void destroy_working(GUI *gui)
 {
-  MasterPassApp* app = (MasterPassApp*)gui;
+  MasterPassApp *app = (MasterPassApp *) gui;
   unsigned char hmac_value[16];
 
   compute_hmac(app, hmac_value);
-  if(!storage_insert(&app->storage, storage_hmac_key, hmac_value))
-    FATAL;
+  if (!storage_insert(&app->storage, storage_hmac_key, hmac_value)) FATAL;
 
-  if(!storage_save(&app->storage))
-    FATAL;
+  if (!storage_save(&app->storage)) FATAL;
 
   storage_destroy(&app->storage);
   storage_init(&app->storage);
@@ -206,7 +204,7 @@ static void destroy_working(GUI* gui)
   cleanse(gui->base64, 45);
 }
 
-static void need_place_and_login(GUI* gui)
+static void need_place_and_login(GUI *gui)
 {
   gtk_widget_set_sensitive(GO_BUTTON(gui), FALSE);
   gtk_widget_set_sensitive(HEX_BUTTON(gui), FALSE);
@@ -215,12 +213,12 @@ static void need_place_and_login(GUI* gui)
   gtk_widget_set_sensitive(FIRST_BUTTON(gui), FALSE);
 }
 
-static void has_place_and_login(GUI* gui)
+static void has_place_and_login(GUI *gui)
 {
   gtk_widget_set_sensitive(GO_BUTTON(gui), TRUE);
 }
 
-static void activate_copy(GUI* gui)
+static void activate_copy(GUI *gui)
 {
   gtk_widget_set_sensitive(GO_BUTTON(gui), FALSE);
   gtk_widget_set_sensitive(HEX_BUTTON(gui), TRUE);
@@ -229,7 +227,7 @@ static void activate_copy(GUI* gui)
   gtk_widget_set_sensitive(FIRST_BUTTON(gui), !gui->is_first);
 }
 
-static void get_working_input(WorkingInput* wi, GUI* gui)
+static void get_working_input(WorkingInput *wi, GUI *gui)
 {
   wi->place = gtk_entry_get_text(GTK_ENTRY(PLACE_ENTRY(gui)));
   wi->place_size = strlen(wi->place);
@@ -237,31 +235,31 @@ static void get_working_input(WorkingInput* wi, GUI* gui)
   wi->login_size = strlen(wi->login);
 }
 
-static void check_inputs(GtkEditable* editable, gpointer data)
+static void check_inputs(GtkEditable *editable, gpointer data)
 {
-  GUI* gui = data;
+  GUI *gui = data;
   WorkingInput wi;
 
   need_place_and_login(gui);
   get_working_input(&wi, gui);
 
-  if(wi.login_size && wi.place_size)
+  if (wi.login_size && wi.place_size)
     has_place_and_login(gui);
 }
 
-static void manage_password(EPassOp op, __uint128_t* value, MasterPassApp* app,
-                            WorkingInput* wi)
+static void manage_password(EPassOp op, __uint128_t *value, MasterPassApp *app,
+                            WorkingInput *wi)
 {
   unsigned char key[32]; /* only first 16 bytes are used as key */
   __uint128_t stored_value;
 
   crypto_generate_public_hash(&app->crypto, key, wi->place, wi->place_size,
-                                                 wi->login, wi->login_size);
+                              wi->login, wi->login_size);
 
-  if(!storage_find(&app->storage, key, (unsigned char*)&stored_value))
+  if (!storage_find(&app->storage, key, (unsigned char *) &stored_value))
     stored_value = 0;
 
-  switch(op){
+  switch (op) {
   case PASS_OP_RESET:
     stored_value = 0;
     storage_remove(&app->storage, key);
@@ -269,25 +267,24 @@ static void manage_password(EPassOp op, __uint128_t* value, MasterPassApp* app,
 
   case PASS_OP_ADD:
     stored_value += *value;
-    if(!storage_insert(&app->storage, key, (unsigned char const*)&stored_value))
-      FATAL;
+    if (!storage_insert(&app->storage, key, (unsigned char const *) &stored_value)) FATAL;
   }
 
   *value = stored_value;
 }
 
-static void derive_password(MasterPassApp* app, WorkingInput* wi,
-                            void const* version)
+static void derive_password(MasterPassApp *app, WorkingInput *wi,
+                            void const *version)
 {
   crypto_generate_password(&app->crypto, app->gui.base64, app->gui.hex,
                            wi->place, wi->place_size, wi->login, wi->login_size,
                            version);
 }
 
-static void go(GtkButton* button, gpointer data)
+static void go(GtkButton *button, gpointer data)
 {
-  MasterPassApp* app = data;
-  GUI* gui = data;
+  MasterPassApp *app = data;
+  GUI *gui = data;
   WorkingInput wi;
   __uint128_t version;
 
@@ -299,22 +296,22 @@ static void go(GtkButton* button, gpointer data)
   activate_copy(gui);
 }
 
-static void hex_copy(GtkButton* button, gpointer data)
+static void hex_copy(GtkButton *button, gpointer data)
 {
-  GUI* gui = data;
+  GUI *gui = data;
   set_clipboard(gui->hex, 64);
 }
 
-static void base64_copy(GtkButton* button, gpointer data)
+static void base64_copy(GtkButton *button, gpointer data)
 {
-  GUI* gui = data;
+  GUI *gui = data;
   set_clipboard(gui->base64, 44);
 }
 
-static void next_password(GtkButton* button, gpointer data)
+static void next_password(GtkButton *button, gpointer data)
 {
-  MasterPassApp* app = data;
-  GUI* gui = data;
+  MasterPassApp *app = data;
+  GUI *gui = data;
   WorkingInput wi;
   __uint128_t version = 1; /* increment by 1 */
 
@@ -326,10 +323,10 @@ static void next_password(GtkButton* button, gpointer data)
   activate_copy(gui);
 }
 
-static void first_password_again(GtkButton* button, gpointer data)
+static void first_password_again(GtkButton *button, gpointer data)
 {
-  MasterPassApp* app = data;
-  GUI* gui = data;
+  MasterPassApp *app = data;
+  GUI *gui = data;
   WorkingInput wi;
   __uint128_t version = 0; /* reset password */
 
@@ -341,7 +338,7 @@ static void first_password_again(GtkButton* button, gpointer data)
   activate_copy(gui);
 }
 
-static void build_working_layout(GUI* gui)
+static void build_working_layout(GUI *gui)
 {
   add_box_and_grid(gui);
 
@@ -370,7 +367,7 @@ static void build_working_layout(GUI* gui)
   ATTACH(gui, CLOSE_BUTTON(gui), 0, 4, 8, 1);
 }
 
-static void attach_working_handlers(GUI* gui)
+static void attach_working_handlers(GUI *gui)
 {
   g_signal_connect(PLACE_ENTRY(gui), "changed", G_CALLBACK(check_inputs), gui);
   g_signal_connect(LOGIN_ENTRY(gui), "changed", G_CALLBACK(check_inputs), gui);
@@ -384,7 +381,7 @@ static void attach_working_handlers(GUI* gui)
                            G_CALLBACK(show_welcome), gui);
 }
 
-static void show_working(GUI* gui)
+static void show_working(GUI *gui)
 {
   gui->destroyer(gui);
 
@@ -399,7 +396,7 @@ static void show_working(GUI* gui)
 }
 
 /* welcome screen takes passwords and creates new safe or opens existing one */
-static void get_welcome_input(WelcomeInput* wi, GUI* gui)
+static void get_welcome_input(WelcomeInput *wi, GUI *gui)
 {
   wi->pass = gtk_entry_get_text(GTK_ENTRY(PASS_ENTRY(gui)));
   wi->pass_size = strlen(wi->pass);
@@ -409,10 +406,10 @@ static void get_welcome_input(WelcomeInput* wi, GUI* gui)
 
 static gboolean open_or_create_safe_or_die(gpointer data, gboolean create)
 {
-  MasterPassApp* app = data;
-  GUI* gui = data;
+  MasterPassApp *app = data;
+  GUI *gui = data;
   WelcomeInput wi;
-  char* path;
+  char *path;
   unsigned char db_name[CRYPTO_KEY_SIZE];
   struct stat st;
   int exists;
@@ -424,57 +421,53 @@ static gboolean open_or_create_safe_or_die(gpointer data, gboolean create)
                               RESERVED_PLACE_SIZE, "file_name", 9);
 
   path = create_path(db_name);
-  if(!path)
-    FATAL;
+  if (!path) FATAL;
 
   exists = -1 != stat(path, &st);
 
   /* create but exists */
-  if(create){
-    if(exists)
+  if (create) {
+    if (exists)
       goto err;
   }
 
-  /* open but doesn't exist */
-  else
-  if(!exists)
+    /* open but doesn't exist */
+  else if (!exists)
     goto err;
 
-  if(!storage_load(&app->storage, path))
-    FATAL;
+  if (!storage_load(&app->storage, path)) FATAL;
 
   free(path);
 
   return TRUE;
 
-err:
+  err:
   crypto_reset_password(&app->crypto);
   free(path);
   return FALSE;
 }
 
-static gboolean open_safe(GtkWidget* widget, gpointer data)
+static gboolean open_safe(GtkWidget *widget, gpointer data)
 {
-  MasterPassApp* app = data;
+  MasterPassApp *app = data;
   unsigned char correct_hmac_value[16];
   unsigned char found_hmac_value[16];
-  char* msg_buffer;
+  char *msg_buffer;
 
-  if(!open_or_create_safe_or_die(data, FALSE))
+  if (!open_or_create_safe_or_die(data, FALSE))
     error_popup(data, "Safe doesn't exist!");
 
   else {
     compute_hmac(app, correct_hmac_value);
 
     /* no hmac */
-    if(!storage_find(&app->storage, storage_hmac_key, found_hmac_value)){
+    if (!storage_find(&app->storage, storage_hmac_key, found_hmac_value)) {
       msg_buffer = malloc(app->storage.name_len
                           + sizeof "Didn't find an HMAC on db at ");
-      if(!msg_buffer)
-        FATAL;
+      if (!msg_buffer) FATAL;
 
       sprintf(msg_buffer, "Didn't find an HMAC on db at %s",
-                          app->storage.file_name);
+              app->storage.file_name);
       error_popup(&app->gui, msg_buffer);
       free(msg_buffer);
 
@@ -484,16 +477,14 @@ static gboolean open_safe(GtkWidget* widget, gpointer data)
       storage_init(&app->storage);
     }
 
-    /* bad hmac */
-    else
-    if(0 != memcmp(correct_hmac_value, found_hmac_value, 16)){
+      /* bad hmac */
+    else if (0 != memcmp(correct_hmac_value, found_hmac_value, 16)) {
       msg_buffer = malloc(app->storage.name_len
                           + sizeof "Bad HMAC at ");
-      if(!msg_buffer)
-        FATAL;
+      if (!msg_buffer) FATAL;
 
       sprintf(msg_buffer, "Bad HMAC at %s",
-                          app->storage.file_name);
+              app->storage.file_name);
       error_popup(&app->gui, msg_buffer);
       free(msg_buffer);
 
@@ -503,7 +494,7 @@ static gboolean open_safe(GtkWidget* widget, gpointer data)
       storage_init(&app->storage);
     }
 
-    /* good hmac */
+      /* good hmac */
     else
       show_working(data);
   }
@@ -511,9 +502,9 @@ static gboolean open_safe(GtkWidget* widget, gpointer data)
   return TRUE;
 }
 
-static gboolean create_safe(GtkWidget* widget, gpointer data)
+static gboolean create_safe(GtkWidget *widget, gpointer data)
 {
-  if(!open_or_create_safe_or_die(data, TRUE))
+  if (!open_or_create_safe_or_die(data, TRUE))
     error_popup(data, "Safe exists!");
 
   else
@@ -522,47 +513,45 @@ static gboolean create_safe(GtkWidget* widget, gpointer data)
   return TRUE;
 }
 
-static void create_or_open_by_enter(GtkEntry* widget, gpointer data)
+static void create_or_open_by_enter(GtkEntry *widget, gpointer data)
 {
-  GUI* gui = data;
+  GUI *gui = data;
 
-  if(gtk_widget_get_sensitive(OPEN_SAFE_BUTTON(gui)))
+  if (gtk_widget_get_sensitive(OPEN_SAFE_BUTTON(gui)))
     open_safe(NULL, data);
 
-  else
-  if(gtk_widget_get_sensitive(CREATE_SAFE_BUTTON(gui)))
+  else if (gtk_widget_get_sensitive(CREATE_SAFE_BUTTON(gui)))
     create_safe(NULL, data);
 }
 
-static void pass_input(GtkEditable* editable, gpointer data)
+static void pass_input(GtkEditable *editable, gpointer data)
 {
-  GUI* gui = data;
+  GUI *gui = data;
   WelcomeInput wi;
 
   get_welcome_input(&wi, gui);
 
-  if(wi.conf_size){
+  if (wi.conf_size) {
     gtk_widget_set_sensitive(OPEN_SAFE_BUTTON(gui), FALSE);
     gtk_widget_set_sensitive(CREATE_SAFE_BUTTON(gui),
                              0 == strcmp(wi.pass, wi.conf));
-  }
-  else {
+  } else {
     gtk_widget_set_sensitive(CREATE_SAFE_BUTTON(gui), FALSE);
     gtk_widget_set_sensitive(OPEN_SAFE_BUTTON(gui), wi.pass_size);
   }
 }
 
-static void init_welcome_buttons(GUI* gui)
+static void init_welcome_buttons(GUI *gui)
 {
   pass_input(NULL, gui);
 }
 
-static void destroy_welcome(GUI* gui)
+static void destroy_welcome(GUI *gui)
 {
   gtk_widget_destroy(BOX(gui));
 }
 
-static void build_welcome_layout(GUI* gui)
+static void build_welcome_layout(GUI *gui)
 {
   gtk_window_resize(GTK_WINDOW(WINDOW(gui)), 480, 1);
 
@@ -587,7 +576,7 @@ static void build_welcome_layout(GUI* gui)
   ATTACH(gui, CREATE_SAFE_BUTTON(gui), 2, 1, 1, 1);
 }
 
-static void attach_welcome_handlers(GUI* gui)
+static void attach_welcome_handlers(GUI *gui)
 {
   g_signal_connect(PASS_ENTRY(gui), "changed", G_CALLBACK(pass_input), gui);
   g_signal_connect(PASS_ENTRY(gui), "activate",
@@ -602,7 +591,7 @@ static void attach_welcome_handlers(GUI* gui)
                    gui);
 }
 
-static void show_welcome(GUI* gui)
+static void show_welcome(GUI *gui)
 {
   gui->destroyer(gui);
 
@@ -614,21 +603,21 @@ static void show_welcome(GUI* gui)
   gtk_widget_show_all(WINDOW(gui));
 }
 
-static void do_nothing(GUI* gui)
+static void do_nothing(GUI *gui)
 {
 }
 
-static gboolean on_delete(GtkWidget* widget, GdkEvent* event, gpointer data)
+static gboolean on_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-  GUI* gui = data;
+  GUI *gui = data;
   gui->destroyer(gui); /* this might clean up sensitive data from memory */
   return FALSE; /* let the default handler run */
 }
 
-static void activate(GtkApplication* gtk_app, gpointer app_ptr)
+static void activate(GtkApplication *gtk_app, gpointer app_ptr)
 {
-  MasterPassApp* app = app_ptr;
-  GUI* gui = &app->gui;
+  MasterPassApp *app = app_ptr;
+  GUI *gui = &app->gui;
 
   WINDOW(gui) = gtk_application_window_new(gtk_app);
   g_signal_connect(WINDOW(gui), "delete-event", G_CALLBACK(on_delete), gui);
@@ -639,7 +628,7 @@ static void activate(GtkApplication* gtk_app, gpointer app_ptr)
 }
 
 /* Public interfaces */
-void gui_init(GUI* gui)
+void gui_init(GUI *gui)
 {
   GTK_APP(gui) = gtk_application_new("master-pass.com.wordpress.artfulcode",
                                      G_APPLICATION_FLAGS_NONE);
@@ -650,12 +639,12 @@ void gui_init(GUI* gui)
                    G_CALLBACK(activate), gui);
 }
 
-void gui_destroy(GUI* gui)
+void gui_destroy(GUI *gui)
 {
   g_object_unref(GTK_APP(gui));
 }
 
-GtkApplication* gui_get_gtk_app(GUI* gui)
+GtkApplication *gui_get_gtk_app(GUI *gui)
 {
   return GTK_APP(gui);
 }

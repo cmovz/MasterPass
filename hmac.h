@@ -18,10 +18,11 @@ typedef struct {
   SHA256_CTX ctx;
 } HMAC;
 
-void hmac_init(HMAC* hmac, unsigned char const* key);
-void hmac_update(HMAC* hmac, void const* data, size_t data_size);
+void hmac_init(HMAC *hmac, unsigned char const *key);
+
+void hmac_update(HMAC *hmac, void const *data, size_t data_size);
 
 /* return HMAC and clean up the structure */
-void hmac_final(HMAC* hmac, unsigned char* out);
+void hmac_final(HMAC *hmac, unsigned char *out);
 
 #endif

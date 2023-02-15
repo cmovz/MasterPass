@@ -11,15 +11,16 @@ typedef struct RandomOracle {
   int pos;
 } RandomOracle;
 
-void random_oracle_init(RandomOracle* ro, unsigned char const* key);
-void random_oracle_destroy(RandomOracle* ro);
+void random_oracle_init(RandomOracle *ro, unsigned char const *key);
+
+void random_oracle_destroy(RandomOracle *ro);
 
 /* transition state without getting bytes */
-void random_oracle_transition_state(RandomOracle* ro);
+void random_oracle_transition_state(RandomOracle *ro);
 
-void random_oracle_get_bytes(RandomOracle* ro, void* dest, size_t n);
+void random_oracle_get_bytes(RandomOracle *ro, void *dest, size_t n);
 
 /* get 1 random byte [0x00;0xff]*/
-int random_oracle_pop(RandomOracle* ro);
+int random_oracle_pop(RandomOracle *ro);
 
 #endif

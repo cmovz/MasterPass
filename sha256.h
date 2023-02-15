@@ -14,10 +14,12 @@ typedef struct {
   uint32_t pos;
 } SHA256_CTX;
 
-void sha256(void const* m, uint64_t m_size, void* md);
+void sha256(void const *m, uint64_t m_size, void *md);
 
-void sha256_init(SHA256_CTX* ctx);
-void sha256_update(SHA256_CTX* ctx, void const* data, uint64_t size);
-void sha256_final(SHA256_CTX* ctx, void* md);
+void sha256_init(SHA256_CTX *ctx);
+
+void sha256_update(SHA256_CTX *ctx, void const *data, uint64_t size);
+
+void sha256_final(SHA256_CTX *ctx, void *md);
 
 #endif

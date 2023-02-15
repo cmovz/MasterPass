@@ -1,9 +1,9 @@
 #include "cleanse.h"
 
-void cleanse(volatile void* mem, size_t size)
+void cleanse(volatile void *mem, size_t size)
 {
-  volatile unsigned char* ptr = mem;
+  volatile unsigned char *ptr = mem;
 
-  while(size--)
+  while (size--)
     *ptr++ = 0x00;
 }

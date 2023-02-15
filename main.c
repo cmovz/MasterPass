@@ -6,14 +6,14 @@
 
 #define MLOCK_SIZE (0x1000 * 16)
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   MasterPassApp app;
-  char* mlock_addr = (char*)&app + sizeof app - MLOCK_SIZE;
+  char *mlock_addr = (char *) &app + sizeof app - MLOCK_SIZE;
   int status;
 
   /* lock the stack here */
-  if(-1 == mlock(mlock_addr, MLOCK_SIZE)){
+  if (-1 == mlock(mlock_addr, MLOCK_SIZE)) {
     perror("mlock()");
     return EXIT_FAILURE;
   }

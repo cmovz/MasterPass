@@ -11,8 +11,10 @@ typedef struct MasterPassApp {
   Storage storage;
 } MasterPassApp;
 
-void master_pass_app_init(MasterPassApp* app);
-void master_pass_app_destroy(MasterPassApp* app);
-int master_pass_app_run(MasterPassApp* app, int argc, char* argv[]);
+void master_pass_app_init(MasterPassApp *app);
+
+void master_pass_app_destroy(MasterPassApp *app);
+
+int master_pass_app_run(MasterPassApp *app, int argc, char *argv[]);
 
 #endif
