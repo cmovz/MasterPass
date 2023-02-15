@@ -122,8 +122,8 @@ static void compute_hmac_traverse_cb(StorageNode const* node, StorageNodeArg x)
   if(0 == memcmp(node->key, storage_hmac_key, STORAGE_KEY_SIZE))
     return;
 
-  HMAC_update(hmac, node->key, STORAGE_KEY_SIZE);
-  HMAC_update(hmac, node->value, STORAGE_VALUE_SIZE);
+  hmac_update(hmac, node->key, STORAGE_KEY_SIZE);
+  hmac_update(hmac, node->value, STORAGE_VALUE_SIZE);
 }
 
 /* computes a 128-bit value for authentication */
@@ -142,10 +142,10 @@ static void compute_hmac(MasterPassApp* app, void* dest)
                               RESERVED_PLACE, RESERVED_PLACE_SIZE,
                               "hmac_key", sizeof "hmac_key" - 1);
 
-  HMAC_init(&hmac, secret_key);
+  hmac_init(&hmac, secret_key);
   x.ptr = &hmac;
   storage_traverse(&app->storage, compute_hmac_traverse_cb, x);
-  HMAC_final(&hmac, value);
+  hmac_final(&hmac, value);
 
   memcpy(dest, value, 16);
 }
