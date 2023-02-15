@@ -126,14 +126,12 @@ void sha256_update(SHA256_CTX *ctx, void const *data, uint64_t size)
 
   ctx->size += size;
 
-  /* I'll benchmark this later to decide if it's a good idea when size == 64 in
-  a lot of consecutive computations
   if((0 == ctx->pos) && (SHA256_BLOCK_SIZE == size)){
     memcpy(ictx.hs, ctx->hs, sizeof ictx.hs);
     sha256_compress(&ictx, data);
     memcpy(ctx->hs, ictx.hs, sizeof ctx->hs);
     return;
-  }*/
+  }
 
   memcpy(ctx->buffer + ctx->pos, data, n);
   ctx->pos += n;
