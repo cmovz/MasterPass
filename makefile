@@ -1,15 +1,26 @@
-CFLAGS = -std=c89 `pkg-config --cflags gtk+-3.0`
+CFLAGS := -O3 -flto -std=c89 -pedantic `pkg-config --cflags gtk+-3.0`
 LFLAGS = `pkg-config --libs gtk+-3.0`
-CC = gcc
-NAME = master_pass
+NAME := master_pass
+DIR := build
+CFILES := $(wildcard *.c)
+OBJ := $(CFILES:%.c=$(DIR)/%.o) $(DIR)/asm.o
+DEPS := $(OBJ:%.o=%.d)
 
-debug: asm
-	$(CC) -o $(NAME) $(CFLAGS) -g *.c asm.o $(LFLAGS)
-	rm asm.o
+release: $(DIR)/$(NAME)
 
-release: asm
-	$(CC) -o $(NAME) $(CFLAGS) -O2 -flto -DNDEBUG *.c asm.o $(LFLAGS)
-	rm asm.o
+$(DIR)/$(NAME): $(OBJ)
+	mkdir -p $(DIR)
+	gcc $(CFLAGS) -o $@ $^ $(LFLAGS)
 
-asm: asm.asm
-	nasm -felf64 -o asm.o asm.asm
+-include $(DEPS)
+
+$(DIR)/asm.o: asm.asm
+	nasm -felf64 -o $(DIR)/asm.o asm.asm
+
+$(DIR)/%.o: %.c
+	mkdir -p $(DIR)
+	gcc $(CFLAGS) -MMD -MF $(patsubst %.o,%.d,$@) -c -o $@ $<
+
+.PHONY: clean
+clean:
+	rm -rf $(DIR)
