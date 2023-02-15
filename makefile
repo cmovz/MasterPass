@@ -6,6 +6,7 @@ CFILES := $(wildcard *.c)
 OBJ := $(CFILES:%.c=$(DIR)/%.o) $(DIR)/asm.o
 DEPS := $(OBJ:%.o=%.d)
 
+all: release
 release: $(DIR)/$(NAME)
 
 $(DIR)/$(NAME): $(OBJ)
