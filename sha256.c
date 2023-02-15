@@ -76,17 +76,45 @@ static void sha256_compress(SHA256_INTERNAL_CTX *c, void const *block)
   c->g = c->hs[6];
   c->h = c->hs[7];
 
-  for (i = 0; i < 64; ++i) {
-    c->temp1 = c->h + S1(c->e) + CH(c->e, c->f, c->g) + k[i] + c->w[i];
+  for (i = 0; i < 64; i += 8) {
+    c->temp1 = c->h + S1(c->e) + CH(c->e, c->f, c->g) + k[i+0] + c->w[i+0];
     c->temp2 = S0(c->a) + MAJ(c->a, c->b, c->c);
+    c->d += c->temp1;
+    c->h = c->temp1 + c->temp2;
 
-    c->h = c->g;
-    c->g = c->f;
-    c->f = c->e;
-    c->e = c->d + c->temp1;
-    c->d = c->c;
-    c->c = c->b;
-    c->b = c->a;
+    c->temp1 = c->g + S1(c->d) + CH(c->d, c->e, c->f) + k[i+1] + c->w[i+1];
+    c->temp2 = S0(c->h) + MAJ(c->h, c->a, c->b);
+    c->c += c->temp1;
+    c->g = c->temp1 + c->temp2;
+
+    c->temp1 = c->f + S1(c->c) + CH(c->c, c->d, c->e) + k[i+2] + c->w[i+2];
+    c->temp2 = S0(c->g) + MAJ(c->g, c->h, c->a);
+    c->b += c->temp1;
+    c->f = c->temp1 + c->temp2;
+
+    c->temp1 = c->e + S1(c->b) + CH(c->b, c->c, c->d) + k[i+3] + c->w[i+3];
+    c->temp2 = S0(c->f) + MAJ(c->f, c->g, c->h);
+    c->a += c->temp1;
+    c->e = c->temp1 + c->temp2;
+
+    c->temp1 = c->d + S1(c->a) + CH(c->a, c->b, c->c) + k[i+4] + c->w[i+4];
+    c->temp2 = S0(c->e) + MAJ(c->e, c->f, c->g);
+    c->h += c->temp1;
+    c->d = c->temp1 + c->temp2;
+
+    c->temp1 = c->c + S1(c->h) + CH(c->h, c->a, c->b) + k[i+5] + c->w[i+5];
+    c->temp2 = S0(c->d) + MAJ(c->d, c->e, c->f);
+    c->g += c->temp1;
+    c->c = c->temp1 + c->temp2;
+
+    c->temp1 = c->b + S1(c->g) + CH(c->g, c->h, c->a) + k[i+6] + c->w[i+6];
+    c->temp2 = S0(c->c) + MAJ(c->c, c->d, c->e);
+    c->f += c->temp1;
+    c->b = c->temp1 + c->temp2;
+
+    c->temp1 = c->a + S1(c->f) + CH(c->f, c->g, c->h) + k[i+7] + c->w[i+7];
+    c->temp2 = S0(c->b) + MAJ(c->b, c->c, c->d);
+    c->e += c->temp1;
     c->a = c->temp1 + c->temp2;
   }
 
