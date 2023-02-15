@@ -189,14 +189,6 @@ void sha256_final(SHA256_CTX *ctx, void *md)
     le_to_be(md, ictx.hs + i, sizeof ictx.hs[0]);
     md = (unsigned char *) md + sizeof ictx.hs[0];
   }
-
-  /* clean up whole stack later for noticeably better performance on key
-    derivation
-  cleanse(&ictx, sizeof ictx);
-  cleanse(ctx, sizeof *ctx);
-  cleanse(last_block + SHA256_BLOCK_SIZE - 8, 8);
-  cleanse(&L, sizeof L);
-  */
 }
 
 void sha256(void const *m_ptr, uint64_t m_size, void *md_ptr)
