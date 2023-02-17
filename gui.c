@@ -630,7 +630,7 @@ static void activate(GtkApplication *gtk_app, gpointer app_ptr)
 /* Public interfaces */
 void gui_init(GUI *gui)
 {
-  GTK_APP(gui) = gtk_application_new("master-pass.com.wordpress.artfulcode",
+  GTK_APP(gui) = gtk_application_new("com.maieski.douglas.masterpass",
                                      G_APPLICATION_FLAGS_NONE);
   WINDOW(gui) = NULL;
   gui->destroyer = do_nothing;
