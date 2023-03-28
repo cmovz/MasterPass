@@ -1,6 +1,8 @@
 # MasterPass
 ## A deterministic password manager.
 
+![](https://raw.githubusercontent.com/cmovz/MasterPass/master/masterpass.png)
+
 This is a small tool I wrote to generate and manage passwords. Unlike most password-managers, there's no encrypted file holding all the passwords, instead it generates passwords deterministically based on a master password.
 
 The main advantage of using this technique is that it doesn't require backups and online services to sync passwords. The same master pass, site and login combination will generate the same password on any machine. If the user has a weak or compromised master password, any hacker anywhere can figure out all of his passwords, so it's extremely important to choose a good, random, unique master password.
